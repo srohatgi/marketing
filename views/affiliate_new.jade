@@ -1,0 +1,13 @@
+h1= title
+form( method="post")
+    div
+        div
+            span Name :
+            input(type="text", name="name", id="editAffiliateName")
+            span Created By :
+            input(type="text", name="created_by", id="editAffiliateCreatedBy")
+        div
+            span Description :
+            textarea( name="description", rows=20, id="editAffiliateDescription")
+        dev#editAffiliateSubmit
+            input(type="submit", value="Send")

@@ -1,0 +1,9 @@
+h1= title
+#affiliates
+    - each affiliate in affiliates
+      div.affiliate
+        div.created_at= affiliate.created_at
+        div.created_by= affiliate.created_by
+        div.name 
+            a(href="/affiliate/"+affiliate._id.toHexString())!= affiliate.name
+        div.description= affiliate.description

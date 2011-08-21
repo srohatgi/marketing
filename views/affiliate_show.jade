@@ -1,0 +1,21 @@
+h1= title
+div.affiliate
+    div.name= affiliate.name
+    div.description= affiliate.description
+    div.created_by= affiliate.created_by
+    div.created_at= affiliate.created_at
+    - each page in affiliate.pages
+      div.page
+        div.address= page.address
+        div.created_by= page.created_by
+    div
+      form( method="post", action="/affiliate/addToPage")
+        input( type="hidden", name="_id", value=affiliate._id.toHexString())
+        div
+          span Address :
+          input( type="text", name="address", id="addPageAddress")
+        div
+          span CreatedBy :
+          input( type="text", name="created_by", id="addPageCreatedBy")
+        div#editAffiliateSubmit
+          input(type="submit", value="Send")
