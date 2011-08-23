@@ -4,7 +4,7 @@
  */
 
 var express = require('express');
-var AffiliateNotifier = require('./affiliate-notifier.js').AffiliateNotifier;
+var AffiliateNotifier = require('./affiliate-model.js').AffiliateNotifier;
 
 var app = module.exports = express.createServer();
 
@@ -35,6 +35,7 @@ var affiliateNotifier = new AffiliateNotifier('localhost', 27017);
 
 app.get('/', function(req, res){
   affiliateNotifier.findAll(function(error, affiliates){
+    console.log(affiliates);
     res.render('index.jade', {locals: {title: 'Affiliate Notifier Manager', affiliates: affiliates}});
   });
 });
@@ -47,29 +48,35 @@ app.post('/affiliate/new', function(req, res){
   affiliateNotifier.save({
     name: req.param('name'),
     description: req.param('description'),
+    website: req.param('website'),
     created_by: req.param('created_by'),
-    created_at: new Date()
-  }, function( error, docs) {
+    updated_by: req.param('created_by'),
+  }, function( error ) {
+    if ( error ) console.log("error saving affiliate");
     res.redirect('/')
   });
 });
 
 app.get('/affiliate/:id', function(req, res) {
   affiliateNotifier.findById(req.params.id, function(error, affiliate) {
-    res.render('affiliate_show.jade', { locals: {
-      title: "Edit Affiliate",
-      affiliate: affiliate
+    if ( error ) console.log("error finding affiliate: "+req.params.id+"!!");
+    else res.render('affiliate_show.jade', { 
+      locals: {
+        title: "Edit Affiliate",
+        affiliate: affiliate
       }
     });
   });
 });
 
-app.post('/affiliate/addToPage', function(req, res) {
-  affiliateNotifier.addToPage(req.param('_id'), {
-    page: req.param('page'),
-    created_by: req.param('created_by'),
-    created_at: new Date()
-  } , function( error, docs) {
+app.post('/affiliate/addApi', function(req, res) {
+  affiliateNotifier.addApi(req.param('_id'), {
+    url: req.param('url'),
+    webpage: req.param('webpage'),
+    created_by: req.param('user'),
+    updated_by: req.param('user')
+  } , function( error ) {
+    if ( error ) console.log("unable to save api: "+req.param('url'));
     res.redirect('/affiliate/' + req.param('_id'))
   });
 });

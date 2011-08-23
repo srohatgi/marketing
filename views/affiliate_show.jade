@@ -2,20 +2,25 @@ h1= title
 div.affiliate
     div.name= affiliate.name
     div.description= affiliate.description
+    div.website= affiliate.website
     div.created_by= affiliate.created_by
     div.created_at= affiliate.created_at
-    - each page in affiliate.pages
+    div.updated_by= affiliate.updated_by
+    div.updated_at= affiliate.updated_at
+    - each api in affiliate.apis
       div.page
-        div.address= page.address
-        div.created_by= page.created_by
+        div.url= api.url
+        div.webpage= api.webpage
     div
-      form( method="post", action="/affiliate/addToPage")
-        input( type="hidden", name="_id", value=affiliate._id.toHexString())
+      form( method="post", action="/affiliate/addApi")
+        input( type="hidden", name="_id", value=affiliate._id)
         div
-          span Address :
-          input( type="text", name="address", id="addPageAddress")
+          span Url :
+          input( type="text", name="url", id="addApiUrl")
+          span Webpage :
+          input( type="text", name="webpage", id="addApiWebpage")
         div
-          span CreatedBy :
-          input( type="text", name="created_by", id="addPageCreatedBy")
+          span User : 
+          input( type="text", name="user", id="addApiUser")
         div#editAffiliateSubmit
           input(type="submit", value="Send")
