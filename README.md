@@ -7,6 +7,6 @@ Running
 -------
 
 install mongodb, node.js, npm
-    $ npm install -d
-    $ npm app.js
+    `$ npm install -d`
+    `$ npm app.js`
 

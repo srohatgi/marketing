@@ -5,6 +5,7 @@
 
 var express = require('express');
 var AffiliateModel = require('./affiliate-model.js').AffiliateModel;
+var CounterModel = require('./counter-model.js').CounterModel;
 
 var app = module.exports = express.createServer();
 
@@ -30,6 +31,7 @@ app.configure('production', function(){
 
 // MONGO DB SERVER, PORT
 var affiliateModel = new AffiliateModel('localhost', 27017);
+var counterModel = new CounterModel('localhost', 27017);
 
 // Routes
 
@@ -83,7 +85,16 @@ app.post('/affiliate/addApi', function(req, res) {
 
 app.get('/webpage_affiliate/:id', function(req, res) {
   affiliateModel.getAffiliateApi(req.params.id, function(error, urls) {
-    if ( error ) console.log("unable to fetch any affiliates for webpage: "+req.params.id);
+    if ( error ) {
+      console.log("unable to fetch any affiliates for webpage: "+req.params.id);
+      urls = [];
+    }
+    else {
+      if ( typeof(urls.length)=="undefined" ) urls = [urls];
+      // fire and forget call
+      for (var i=0;i<urls.length;i++) 
+        counterModel.save({name: urls[i].url, type: urls[i].webpage, subtype: ""});
+    }
     res.send(urls);
   });
 });
