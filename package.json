@@ -1,6 +1,8 @@
 {
-    "name": "application-name"
+    "name": "marketing"
   , "version": "0.0.1"
+  , "author": "Sumeet Rohatgi <sum.rohatgi@gmail.com>"
+  , "main": "app.js"
   , "private": true
   , "dependencies": {
       "express": "2.4.3"
