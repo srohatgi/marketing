@@ -63,4 +63,24 @@ AffiliateNotifier.prototype.addApi = function(id,api_doc,callback) {
   });
 };
 
+AffiliateNotifier.prototype.getAffiliateApi = function(webpage,callback) {
+  Affiliate.find({ "apis.webpage": webpage }, { "apis.webpage": 1, "apis.url":  1}, function (error, aff_model) {
+    if ( error ) callback(error);
+    else {
+      var filtered = [];
+      for (var i=0;i<aff_model.length;i++) {
+        var doc = aff_model[i].apis;
+        for (var k=0;k<doc.length;k++) {
+          //console.log("fetched webpage: "+doc[k].webpage+" url: "+doc[k].url);
+          if ( doc[k].webpage === webpage ) {
+            //console.log("added webpage: "+doc[k].webpage+" url: "+doc[k].url);
+            filtered.push({webpage: doc[k].webpage, url: doc[k].url});
+          }
+        }
+      }
+      callback(null,filtered);
+    }
+  });
+}
+
 exports.AffiliateNotifier = AffiliateNotifier;

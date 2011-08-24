@@ -35,7 +35,7 @@ var affiliateNotifier = new AffiliateNotifier('localhost', 27017);
 
 app.get('/', function(req, res){
   affiliateNotifier.findAll(function(error, affiliates){
-    console.log(affiliates);
+    //console.log(affiliates);
     res.render('index.jade', {locals: {title: 'Affiliate Notifier Manager', affiliates: affiliates}});
   });
 });
@@ -78,6 +78,13 @@ app.post('/affiliate/addApi', function(req, res) {
   } , function( error ) {
     if ( error ) console.log("unable to save api: "+req.param('url'));
     res.redirect('/affiliate/' + req.param('_id'))
+  });
+});
+
+app.get('/webpage_affiliate/:id', function(req, res) {
+  affiliateNotifier.getAffiliateApi(req.params.id, function(error, urls) {
+    if ( error ) console.log("unable to fetch any affiliates for webpage: "+req.params.id);
+    res.send(urls);
   });
 });
 
