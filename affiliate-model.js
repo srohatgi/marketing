@@ -82,6 +82,6 @@ AffiliateModel.prototype.getAffiliateApi = function(webpage,callback) {
       callback(null,filtered);
     }
   });
-}
+};
 
 exports.AffiliateModel = AffiliateModel;
