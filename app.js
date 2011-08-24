@@ -4,7 +4,7 @@
  */
 
 var express = require('express');
-var AffiliateNotifier = require('./affiliate-model.js').AffiliateNotifier;
+var AffiliateModel = require('./affiliate-model.js').AffiliateModel;
 
 var app = module.exports = express.createServer();
 
@@ -29,12 +29,12 @@ app.configure('production', function(){
 });
 
 // MONGO DB SERVER, PORT
-var affiliateNotifier = new AffiliateNotifier('localhost', 27017);
+var affiliateModel = new AffiliateModel('localhost', 27017);
 
 // Routes
 
 app.get('/', function(req, res){
-  affiliateNotifier.findAll(function(error, affiliates){
+  affiliateModel.findAll(function(error, affiliates){
     //console.log(affiliates);
     res.render('index.jade', {locals: {title: 'Affiliate Notifier Manager', affiliates: affiliates}});
   });
@@ -45,7 +45,7 @@ app.get('/affiliate/new', function(req, res) {
 });
 
 app.post('/affiliate/new', function(req, res){
-  affiliateNotifier.save({
+  affiliateModel.save({
     name: req.param('name'),
     description: req.param('description'),
     website: req.param('website'),
@@ -58,7 +58,7 @@ app.post('/affiliate/new', function(req, res){
 });
 
 app.get('/affiliate/:id', function(req, res) {
-  affiliateNotifier.findById(req.params.id, function(error, affiliate) {
+  affiliateModel.findById(req.params.id, function(error, affiliate) {
     if ( error ) console.log("error finding affiliate: "+req.params.id+"!!");
     else res.render('affiliate_show.jade', { 
       locals: {
@@ -70,7 +70,7 @@ app.get('/affiliate/:id', function(req, res) {
 });
 
 app.post('/affiliate/addApi', function(req, res) {
-  affiliateNotifier.addApi(req.param('_id'), {
+  affiliateModel.addApi(req.param('_id'), {
     url: req.param('url'),
     webpage: req.param('webpage'),
     created_by: req.param('user'),
@@ -82,7 +82,7 @@ app.post('/affiliate/addApi', function(req, res) {
 });
 
 app.get('/webpage_affiliate/:id', function(req, res) {
-  affiliateNotifier.getAffiliateApi(req.params.id, function(error, urls) {
+  affiliateModel.getAffiliateApi(req.params.id, function(error, urls) {
     if ( error ) console.log("unable to fetch any affiliates for webpage: "+req.params.id);
     res.send(urls);
   });

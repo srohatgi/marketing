@@ -24,19 +24,19 @@ var myAffiliate = new Schema({
 
 var Affiliate = mongoose.model('Affiliate',myAffiliate);
 
-AffiliateNotifier = function(host, port) {
+AffiliateModel = function(host, port) {
   mongoose.connect('mongodb://'+host+':'+port+'/marketing');
 };
 
 
-AffiliateNotifier.prototype.findAll = function(callback) {
+AffiliateModel.prototype.findAll = function(callback) {
   Affiliate.find({}, function (error, docs) {
     if ( error ) callback(error);
     else callback(null, docs);
   });
 };
 
-AffiliateNotifier.prototype.save = function(doc,callback) {
+AffiliateModel.prototype.save = function(doc,callback) {
   var aff = new Affiliate();
   aff.name = doc.name;
   aff.description = doc.description;
@@ -46,14 +46,14 @@ AffiliateNotifier.prototype.save = function(doc,callback) {
   aff.save(function (error) { callback(error); });
 };
 
-AffiliateNotifier.prototype.findById = function(id, callback) {
+AffiliateModel.prototype.findById = function(id, callback) {
   Affiliate.findOne({ _id: id}, function(error, doc) {
     if( error ) callback(error)
     else callback(null, doc)
   });
 };
 
-AffiliateNotifier.prototype.addApi = function(id,api_doc,callback) {
+AffiliateModel.prototype.addApi = function(id,api_doc,callback) {
   Affiliate.findOne({ _id: id}, function(error, aff_model) {
     if ( error ) callback(error);
     else {
@@ -63,11 +63,12 @@ AffiliateNotifier.prototype.addApi = function(id,api_doc,callback) {
   });
 };
 
-AffiliateNotifier.prototype.getAffiliateApi = function(webpage,callback) {
+AffiliateModel.prototype.getAffiliateApi = function(webpage,callback) {
   Affiliate.find({ "apis.webpage": webpage }, { "apis.webpage": 1, "apis.url":  1}, function (error, aff_model) {
     if ( error ) callback(error);
     else {
       var filtered = [];
+      if ( typeof(aff_model.length)=="undefined" ) aff_model = [aff_model];
       for (var i=0;i<aff_model.length;i++) {
         var doc = aff_model[i].apis;
         for (var k=0;k<doc.length;k++) {
@@ -83,4 +84,4 @@ AffiliateNotifier.prototype.getAffiliateApi = function(webpage,callback) {
   });
 }
 
-exports.AffiliateNotifier = AffiliateNotifier;
+exports.AffiliateModel = AffiliateModel;
