@@ -1,0 +1,24 @@
+h1= title
+div
+  a( href="/login") Login to existing account
+div
+  .form_title
+     b Create New Account
+  form( method="post", action="/account/create")
+    div
+      span Account Name :
+      input( type="text", name="acct_name", id="acctName")
+      span Account Description :
+      input( type="text", name="acct_description", id="acctDescription")
+      span Authentication Policy :
+      input( type="text", name="identity", id="acctIdentity")
+      span Admin Name :
+      input( type="text", name="name", id="userName")
+      span Admin Email :
+      input( type="text", name="email", id="userEmail")
+      span Admin Passwd :
+      input( type="text", name="passwd", id="userPasswd")
+      span OWA Url :
+      input( type="text", name="owa_url", id="owaUrl")
+    div#AccountSubmit
+      input( type="submit", value="Send")

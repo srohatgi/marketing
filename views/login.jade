@@ -1,0 +1,12 @@
+h1= title
+div
+  .form_title
+     b Login Page
+  form( method="post", action="/login")
+    div
+      span User Email :
+      input( type="text", name="email", id="loginEmail")
+      span Password :
+      input( type="password", name="passwd", id="loginPasswd")
+    div#LoginSubmit
+      input( type="submit", value="Send")
