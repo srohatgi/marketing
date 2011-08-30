@@ -12,6 +12,6 @@ Install
 
 Running
 -------
-*  `$ node app.js`
+*  `$ cd ~/github/marketing; node app.js`
 
 NOTE: the node.js server is configured to listen on localhost:3000. It also assumes a mongodb running on localhost:27017. Both these settings can be changed in `app.js`
