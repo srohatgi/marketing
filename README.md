@@ -6,9 +6,9 @@ Affiliate, User/ Account management application
 Install
 -------
 *  Download and install `node.js`, `npm`, `express`
+*  Download and install `mongo db`
 *  Download source code to a local directory, example: `~/github/marketing`
-*  `$ cd ~/github/marketing` 
-*  `$ npm install -d` 
+*  install dependencies: `$ cd ~/github/marketing; npm install -d`
 
 Running
 -------
