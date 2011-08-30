@@ -109,7 +109,7 @@ app.post('/app/affiliate/new', function(req, res){
       var msg = 'failed creating affiliate';
       res.send("%s results: %s",msg,JSON.stringify(results));
     }
-    res.redirect('/'); // goto main app page
+    res.redirect('/'); // goto main app page; which shows affiliate list
   });
 });
 
