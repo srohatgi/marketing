@@ -1,16 +1,17 @@
 var mongoose = require("mongoose")
-  , crypto = require("crypto");
+  , crypto = require("crypto")
+  , util = require("util");
 
 var Schema = mongoose.Schema
   , ObjectId = Schema.ObjectId;
 
-var IdentityData = new Schema({
+var IdentityDataSchema = new Schema({
     identity: String
   , passwd: String
   , owa_url: String
 });
 
-var myAccount = new Schema({
+var AccountSchema = new Schema({
     name: String
   , description: String
   , allowed_identities: [String]
@@ -21,40 +22,47 @@ var myAccount = new Schema({
   , updated_at: { type: Date, default: Date.now }
 });
 
-var myUser = new Schema({
+var UserSchema = new Schema({
     name: String
   , accountId: ObjectId
   , login: { type: String, unique: true }
   , email: [String]
-  , identities: [IdentityData]
+  , identities: [IdentityDataSchema]
   , created_by: String
   , created_at: {type: Date, default: Date.now }
   , updated_by: String
   , updated_at: { type: Date, default: Date.now }
 });
 
-var User = mongoose.model('User',myUser);
-var Account = mongoose.model('Account',myAccount);
+var User, Account;
 
 UserModel = function(host, port) {
-  mongoose.connect('mongodb://'+host+':'+port+'/user');
+  var db = mongoose.createConnection('mongodb://'+host+':'+port+'/user');
+  User = db.model('User',UserSchema);
+  Account = db.model('Account',AccountSchema);
+  console.info("connected to mongodb://%s:%d/user",host,port);
 };
 
 UserModel.prototype.login = function(doc, callback) {
   console.log("login buffer in: "+JSON.stringify(doc));
-  User.findOne({"login": doc.login}, function (error, rec) {
-    if ( error ) callback(error);
+  User.findOne({email: doc.email}, function (error, rec) {
+    console.log("user rec: %s",util.inspect(rec));
+    if ( error || rec == null ) callback(error?error:new Error("NO USER FOUND"));
     else {
       if ( rec.identities[0].identity == 'plain' ) {
         var shasum = crypto.createHash('sha1');
         shasum.update(doc.passwd);
-        if ( rec.passwd != shasum.digest('hex') )  callback(error);
+        console.log("checking password against sha1");
+        if ( rec.identities[0].passwd != shasum.digest('hex') )  callback(new Error("PASSWORD DOES NOT MATCH"));
         else callback(null,rec._id);
+        return;
       }
       else if ( rec.identities[0].identity == 'owa' ) {
         // TODO: do owa login here
+        callback(new Error("OWA NOT SUPPORTED"));
+        return;
       }
-      callback(null,rec._id);
+      else return;
     }
   });
 }

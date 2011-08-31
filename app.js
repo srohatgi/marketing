@@ -16,8 +16,9 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.logger({ format: ':method :url :response-time' }));
-  console.info("setup the logger");
   app.use(require('stylus').middleware({ src: __dirname + '/public' }));
+  app.use(express.cookieParser());
+  app.use(express.session({ secret: "keyboard cat" }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
@@ -38,6 +39,13 @@ var UserModel = require('./models/user-model.js').UserModel
 var affiliateModel = new AffiliateModel('localhost', 27017)
   , counterModel = new CounterModel('localhost', 27017)
   , userModel = new UserModel('localhost', 27017);
+
+// Routes
+// Enforce Session To Be populated with userId at all times
+app.all('/app/*', function (req, res, next) {
+  if ( !req.session.userId && req.params != 'login' && req.params != 'account/create' ) res.redirect('/app/login');
+  else next();
+});
 
 /*****************************************************************************
  * AFFILIATES manager app & relevant api                                     *
@@ -231,11 +239,13 @@ app.post('/app/login', function(req, res){
   console.info("logging into: %s",JSON.stringify(data));
 
   userModel.login(data, function (error, userId) {
-    var userId = null;
-    if ( err === null ) {
-      console.info('results: %s',userId);
+    if ( error ) {
+      res.send("unable to login user: "+req.param('email')+" error: "+error);
+      return;
     }
-    res.send("logged in: %s",userId);
+    console.info('results: %s',userId);
+    req.session.userId = userId;
+    res.redirect('/app/affiliate/create');
   });
 });
 
