@@ -1,12 +1,24 @@
-h1= title
-#affiliates
+h2= title
+#body
+  table
+    tbody
     - each affiliate in affiliates
-      div.affiliate
-        div.created_at= affiliate.created_at
-        div.created_by= affiliate.created_by
-        div.name 
-            a(href="/app/affiliate/"+affiliate._id.toHexString())!= affiliate.name
-        div.description= affiliate.description
-        div.website= affiliate.website
-    div 
-      a(href="/app/affiliate/create") Create new Affiliate
+      tr
+        td
+          a(href="/app/affiliate/"+affiliate._id.toHexString())!= affiliate.name
+        td
+          span #{affiliate.description}
+        td
+          span #{affiliate.website}
+      tr
+        td
+        td
+          span <i>#{affiliate.created_by}</i>
+        td
+          span <i>#{affiliate.created_at.toDateString()}</i>
+      tr
+  table
+    tbody
+      tr
+        td
+          <input type="button" value="Add New Affiliate" onClick="window.location='/app/affiliate/create'"/>
