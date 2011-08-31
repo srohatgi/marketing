@@ -1,12 +1,23 @@
-h1= title
+h2= title + ' to Affiliate Manager'
 div
-  .form_title
-     b Login Page
   form( method="post", action="/app/login")
-    div
-      span User Email :
-      input( type="text", name="email", id="loginEmail")
-      span Password :
-      input( type="password", name="passwd", id="loginPasswd")
-    div#LoginSubmit
-      input( type="submit", value="Send")
+    table
+      tbody
+        tr
+          td
+            span Email:
+          td
+            input( type="text", name="email", id="loginEmail")
+        tr
+          td
+            span Password:
+          td
+            input( type="password", name="passwd", id="loginPasswd")
+        tr
+          td
+          td
+            input( type="submit", value="Log In")
+        tr
+          td
+          td
+            a(href="/app/account/create") Create a new account

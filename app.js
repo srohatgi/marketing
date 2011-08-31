@@ -51,7 +51,7 @@ app.all('/app/*', function (req, res, next) {
  * AFFILIATES manager app & relevant api                                     *
  *****************************************************************************/
 // main 'app' page
-app.get('/', function(req, res){
+app.get('/app/affiliate/list', function(req, res){
   affiliateModel.findAll(function(err, affiliates){
     if ( err ) {
       res.send("error calling /affiliate/all: "+err);
@@ -227,6 +227,10 @@ app.post('/api/account/create', function(req, res) {
 });
 
 // login
+app.get('/', function(req, res){
+  res.render('login.jade', { title: 'Login' });
+});
+
 app.get('/app/login', function(req, res){
   res.render('login.jade', { title: 'Login' });
 });
@@ -245,7 +249,7 @@ app.post('/app/login', function(req, res){
     }
     console.info('results: %s',userId);
     req.session.userId = userId;
-    res.redirect('/app/affiliate/create');
+    res.redirect('/app/affiliate/list');
   });
 });
 
