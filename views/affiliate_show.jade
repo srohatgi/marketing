@@ -1,26 +1,47 @@
-h1= title
-div.affiliate
-    div.name= affiliate.name
-    div.description= affiliate.description
-    div.website= affiliate.website
-    div.created_by= affiliate.created_by
-    div.created_at= affiliate.created_at
-    div.updated_by= affiliate.updated_by
-    div.updated_at= affiliate.updated_at
-    - each api in affiliate.apis
-      div.page
-        div.url= api.url
-        div.webpage= api.webpage
+h2= title
+#body
+    table
+      tbody
+        tr
+          td
+            span Affiliate name: <b>#{affiliate.name}</b> 
+          td
+            span Website: <b>#{affiliate.website}</b> 
+          td
+            span Description: <b>#{affiliate.description}</b>
+        tr
+          td
+            span Added by: <i>#{affiliate.created_by}</i> 
+          td
+            span on: <i>#{affiliate.created_at.toDateString()}</i> 
+        tr
+          td
+            span Last Updated by: <i>#{affiliate.updated_by}</i> 
+          td
+            span on: <i>#{affiliate.updated_at.toDateString()}</i> 
+    table
+      tbody
+        - each api, i in affiliate.apis
+          tr
+            td
+              span <u>Pixel #{i+1}</u>
+          tr
+            td
+              span url: <b>#{api.url+' '}</b>
+            td
+              span webpage: <b>#{api.webpage}</b>
     div
-      form( method="post", action="/app/affiliate/addApi")
-        input( type="hidden", name="_id", value=affiliate._id)
-        div
-          span Url :
-          input( type="text", name="url", id="addApiUrl")
-          span Webpage :
-          input( type="text", name="webpage", id="addApiWebpage")
-        div
-          span User : 
-          input( type="text", name="user", id="addApiUser")
-        div#editAffiliateSubmit
-          input(type="submit", value="Send")
+      h3
+        span Add another <em><b>#{affiliate.name}</em></b> pixel:
+      div
+        form( method="post", action="/app/affiliate/api/create")
+          input( type="hidden", name="_id", value=affiliate._id)
+          div
+            span Url: 
+            input( type="text", name="url", id="addApiUrl")
+            span Webpage: 
+            input( type="text", name="webpage", id="addApiWebpage")
+            span User: 
+            input( type="text", name="user", id="addApiUser")
+            div#editAffiliateSubmit
+            input(type="submit", value="Send")

@@ -1,12 +1,14 @@
 body {
   font-family: "Helvetica Neue", "Lucida Grande", "Arial";
   font-size: 13px;
-  text-align: center;
+  text-align: left;
   text-stroke: 1px rgba(255,255,255,0.10);
   color: #555;
+  margin: 10px;
 }
 h1,
-h2 {
+h2,
+h3 {
   margin: 0;
   font-size: 22px;
   color: #343434;
@@ -15,11 +17,17 @@ h1 {
   text-shadow: 1px 2px 2px #ddd;
   font-size: 60px;
 }
+h2 {
+  margin: 5px;
+}
+h3 {
+  font-size: 15px;
+}
 #affiliates {
   text-align: left;
   margin-left: auto;
   margin-right: auto;
-  width: 320px;
+  width: 600px;
 }
 #affiliates .affiliate {
   margin: 20px;
@@ -50,4 +58,8 @@ h1 {
 .affiliate textarea {
   width: 490px;
   height: 90px;
+}
+.api .url {
+  font-weight: bold;
+  text-decoration: underline;
 }

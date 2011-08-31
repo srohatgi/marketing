@@ -56,6 +56,11 @@ app.get('/', function(req, res){
 app.get('/app/affiliate/:id', function(req, res) {
   console.info("details of affiliate: %s",req.params.id);
 
+  if ( req.params.id == 'create' ) {
+    res.render('affiliate_new.jade', { locals: { title: 'Add Affiliate' } });
+    return;
+  }
+
   affiliateModel.findById(req.params.id, function(err, affiliate){
     if ( err ) {
       console.log("error finding affiliate: %s!!",req.params.id);
@@ -92,12 +97,7 @@ app.get('/api/affiliate/:id', function(req, res) {
   }
 });
 
-// add new affiliate
-app.get('/app/affiliate/new', function(req, res) {
-  res.render('affiliate_new.jade', { locals: { title: 'Add Affiliate' } });
-});
-
-app.post('/app/affiliate/new', function(req, res){
+app.post('/app/affiliate/create', function(req, res){
   var data = {
       email: req.param('email')
     , passwd: req.param('passwd')
@@ -125,7 +125,7 @@ app.post('/api/affiliate/create', function(req, res){
 });
 
 // add affiliate[API]
-app.post('/app/affiliate/addApi', function(req, res) {
+app.post('/app/affiliate/api/create', function(req, res) {
   var data = {
       _id: req.param('_id')
     , url: req.param('url')
@@ -136,7 +136,7 @@ app.post('/app/affiliate/addApi', function(req, res) {
 
   affiliateModel.addApi(data._id, data, function (err) {
     if ( err ) console.log("unable to save api: "+req.param('url'));
-    res.redirect('/affiliate/' + req.param('_id'));
+    res.redirect('/app/affiliate/' + req.param('_id'));
   });
 });
 
