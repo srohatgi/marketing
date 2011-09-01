@@ -37,7 +37,7 @@ var UserSchema = new Schema({
 var User, Account;
 
 UserModel = function(url) {
-  var db = mongoose.createConnection(url+'/user');
+  var db = mongoose.createConnection(url);
   User = db.model('User',UserSchema);
   Account = db.model('Account',AccountSchema);
   console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);

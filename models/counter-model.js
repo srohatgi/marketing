@@ -13,7 +13,7 @@ var myCounter = new Schema({
 var Counter;
 
 CounterModel = function(url) {
-  var db = mongoose.createConnection(url+'/marketing');
+  var db = mongoose.createConnection(url);
   Counter = db.model('Counter',myCounter);
   console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
 };
