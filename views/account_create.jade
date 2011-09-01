@@ -13,9 +13,9 @@ div
           td
             input( type="text", name="acct_description", id="acctDescription")
           td
-            span Authentication Policy :
+            span Website :
           td
-            input( type="text", name="identity", id="acctIdentity")
+            input( type="text", name="website", id="userWebsite")
         tr
           td
             span Admin Name :
@@ -31,7 +31,9 @@ div
             input( type="password", name="passwd", id="userPasswd")
         tr
           td
+            span User Authentication Policy :
           td
+            <select name="identity"><option value="plain">basic</option><select>
           td
           td
           td

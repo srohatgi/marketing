@@ -43,7 +43,7 @@ var affiliateModel = new AffiliateModel('localhost', 27017)
 // Routes
 // Enforce Session To Be populated with userId at all times
 app.all('/app/*', function (req, res, next) {
-  if ( !req.session.userId && req.params != 'login' && req.params != 'account/create' ) res.redirect('/app/login');
+  if ( ( !req.session.userId || !req.session.accountId ) && req.params != 'login' && req.params != 'account/create' ) res.redirect('/app/login');
   else next();
 });
 
@@ -52,7 +52,7 @@ app.all('/app/*', function (req, res, next) {
  *****************************************************************************/
 // main 'app' page
 app.get('/app/affiliate/list', function(req, res){
-  affiliateModel.findAll(function(err, affiliates){
+  affiliateModel.findAll(req.session.accountId, function(err, affiliates){
     if ( err ) {
       res.send("error calling /affiliate/all: "+err);
       return;
@@ -69,7 +69,7 @@ app.get('/app/affiliate/:id', function(req, res) {
     return;
   }
 
-  affiliateModel.findById(req.params.id, function(err, affiliate){
+  affiliateModel.findById({ affiliate_id: req.params.id, accountId: req.session.accountId} , function(err, affiliate){
     if ( err ) {
       console.log("error finding affiliate: %s!!",req.params.id);
       res.send("unable to find affiliate: "+req.params.id);
@@ -105,19 +105,25 @@ app.get('/api/affiliate/:id', function(req, res) {
   }
 });
 
+// read from form, and update the data record
 app.post('/app/affiliate/create', function(req, res){
   var data = {
-      email: req.param('email')
-    , passwd: req.param('passwd')
+      name: req.param('name')
+    , account_id: req.session.accountId
+    , website: req.param('website')
+    , created_by: req.param('created_by')
+    , description: req.param('description')
   };
-  console.info("logging into: %s",JSON.stringify(data));
+  console.info("creating new affiliate: %s",JSON.stringify(data));
 
   affiliateModel.save( data, function( err ) {
     if ( err ) {
-      var msg = 'failed creating affiliate';
-      res.send("%s results: %s",msg,JSON.stringify(results));
+      var msg = 'failed creating affiliate: '+err+'';
+      console.log(msg);
+      res.send(msg);
+      return;
     }
-    res.redirect('/'); // goto main app page; which shows affiliate list
+    res.redirect('/app/affiliate/list'); // goto main app page; which shows affiliate list
   });
 });
 
@@ -137,6 +143,7 @@ app.post('/app/affiliate/api/create', function(req, res) {
   var data = {
       _id: req.param('_id')
     , url: req.param('url')
+    , account_id: req.session.accountId
     , webpage: req.param('webpage')
     , created_by: req.param('user')
     , updated_by: req.param('user')
@@ -204,8 +211,8 @@ app.post('/app/account/create', function(req, res) {
   console.info("creating account: %s",JSON.stringify(data));
 
   userModel.createAccount( data, function (error, userId) {
-    if ( err === null ) console.error('error: %s',JSON.stringify(results));
-    res.redirect("/login");
+    if ( error === null ) console.log('error: %s',error);
+    res.redirect("/app/login");
   });
 
 });
@@ -242,13 +249,14 @@ app.post('/app/login', function(req, res){
   };
   console.info("logging into: %s",JSON.stringify(data));
 
-  userModel.login(data, function (error, userId) {
+  userModel.login(data, function (error, doc) {
     if ( error ) {
       res.send("unable to login user: "+req.param('email')+" error: "+error);
       return;
     }
-    console.info('results: %s',userId);
-    req.session.userId = userId;
+    console.info('logged in user: %s account: %s',doc.userId,doc.accountId);
+    req.session.userId = doc.userId;
+    req.session.accountId = doc.userId;
     res.redirect('/app/affiliate/list');
   });
 });
@@ -257,14 +265,14 @@ app.post('/api/login', function(req, res) {
   console.info(req.body);
   var data = req.body;
 
-  userModel.login(data, function (error, userId) {
+  userModel.login(data, function (error, doc) {
     if ( error ) {
-      console.log("error logging in");
-      res.send({error: "error logging in!"});
+      console.log("error logging in error: %s",error);
+      res.send({error: "error logging in: "+error+"!"});
     }
     else {
-      console.log("successfully logged in! user: "+userId);
-      res.send({ userId: userId });
+      console.log("successfully logged in! user: %s account: %s",doc.userId,doc.accountId);
+      res.send({ userId: doc.userId, accountId: doc.accountId });
     }
   });
 });

@@ -24,7 +24,7 @@ var AccountSchema = new Schema({
 
 var UserSchema = new Schema({
     name: String
-  , accountId: ObjectId
+  , account_id: ObjectId
   , login: { type: String, unique: true }
   , email: [String]
   , identities: [IdentityDataSchema]
@@ -45,7 +45,7 @@ UserModel = function(host, port) {
 
 UserModel.prototype.login = function(doc, callback) {
   console.log("login buffer in: "+JSON.stringify(doc));
-  User.findOne({email: doc.email}, function (error, rec) {
+  User.findOne({login: doc.email}, function (error, rec) {
     console.log("user rec: %s",util.inspect(rec));
     if ( error || rec == null ) callback(error?error:new Error("NO USER FOUND"));
     else {
@@ -54,7 +54,7 @@ UserModel.prototype.login = function(doc, callback) {
         shasum.update(doc.passwd);
         console.log("checking password against sha1");
         if ( rec.identities[0].passwd != shasum.digest('hex') )  callback(new Error("PASSWORD DOES NOT MATCH"));
-        else callback(null,rec._id);
+        else callback(null,{ userId: rec._id, accountId: rec.account_id});
         return;
       }
       else if ( rec.identities[0].identity == 'owa' ) {
@@ -75,12 +75,12 @@ UserModel.prototype.createAccount = function(doc, callback) {
 
   account.save(function (error) {
     if ( error ) {
-      console.log("unable to save account:"+JSON.stringify(doc));  
+      console.log("unable to save account: %s error: %s",JSON.stringify(doc),error);  
       callback(error);
     }
     else {
       console.log("saved account:"+JSON.stringify(account));
-      doc.accountId = account._id;
+      doc.account_id = account._id;
       my_user_save(doc,callback);
     }
   });
@@ -91,9 +91,10 @@ UserModel.prototype.save = my_user_save;
 var my_user_save = function(doc, callback) {
   var user = new User();
   user.name = doc.name;
-  user.accountId = doc.accountId;
+  user.account_id = doc.account_id;
   user.email = [doc.email];
-  console.log("trying to save user: "+JSON.stringify(doc));
+  user.login = doc.email;
+  //console.log("trying to save user: "+JSON.stringify(doc));
   if ( doc.identity == 'plain' ) {
     var shasum = crypto.createHash('sha1');
     shasum.update(doc.passwd);
@@ -105,12 +106,12 @@ var my_user_save = function(doc, callback) {
   }
   user.save(function (error) {
     if ( error ) {
-      console.log("unable to save user:"+JSON.stringify(doc));  
+      console.log("unable to save user: %s error:%s",JSON.stringify(doc),error);  
       callback(error);
     }
     else {
       console.log("saved user:"+JSON.stringify(user));
-      callback(null,this._id);
+      callback(null,user._id);
     }
   });
 };

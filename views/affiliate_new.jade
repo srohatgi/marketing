@@ -1,15 +1,26 @@
-h1= title
+h2= title
 form( method="post")
-    div
-        div
+  table
+    tbody
+      tr
+        td
             span Name :
+        td
             input(type="text", name="name", id="editAffiliateName")
+        td
             span Website :
+        td
             input(type="text", name="website", id="editAffiliateWebsite")
-            span Created By :
-            input(type="text", name="created_by", id="editAffiliateCreatedBy")
-        div
+      tr
+        td
             span Description :
-            textarea( name="description", rows=20, id="editAffiliateDescription")
-        dev#editAffiliateSubmit
-            input(type="submit", value="Send")
+        td
+            textarea( name="description", rows=2, id="editAffiliateDescription")
+        td
+            span Created By :
+        td
+            input(type="text", name="created_by", id="editAffiliateCreatedBy")
+      tr
+        td
+        td
+            input(type="submit", value="Create New Affiliate")

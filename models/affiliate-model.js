@@ -15,6 +15,7 @@ var myAffiliate = new Schema({
     name: String
   , description: String
   , website: String
+  , account_id: ObjectId
   , apis: [API]
   , created_by: String
   , created_at: { type: Date, default: Date.now }
@@ -25,13 +26,13 @@ var myAffiliate = new Schema({
 var Affiliate = mongoose.model('Affiliate',myAffiliate);
 
 AffiliateModel = function(host, port) {
-  var db = mongoose.createConnection('mongodb://'+this.host+':'+this.port+'/marketing');
+  var db = mongoose.createConnection('mongodb://'+host+':'+port+'/marketing');
   console.info("connected to mongodb://%s:%d/marketing",host,port);
 };
 
 
-AffiliateModel.prototype.findAll = function(callback) {
-  Affiliate.find({}, function (error, docs) {
+AffiliateModel.prototype.findAll = function(accountId, callback) {
+  Affiliate.find({account_id: accountId}, function (error, docs) {
     if ( error ) {
       console.error("error reading affiliates: %s",error);
       callback(error);
@@ -50,26 +51,35 @@ AffiliateModel.prototype.save = function(doc,callback) {
   aff.website = doc.website;
   aff.created_by = doc.created_by;
   aff.updated_by = doc.updated_by;
+  aff.account_id = doc.account_id;
   aff.save(function (error) { callback(error); });
 };
 
-AffiliateModel.prototype.findById = function(id, callback) {
-  Affiliate.findOne({ _id: id}, function(error, doc) {
+AffiliateModel.prototype.findById = function(doc, callback) {
+  Affiliate.findOne({ _id: doc.affiliate_id, account_id: doc.accountId }, function(error, doc) {
     if( error ) callback(error)
     else callback(null, doc)
   });
 };
 
-AffiliateModel.prototype.addApi = function(id,api_doc,callback) {
-  Affiliate.findOne({ _id: id}, function(error, aff_model) {
-    if ( error ) callback(error);
-    else {
-      aff_model.apis.push(api_doc);
-      aff_model.save( function (err) { callback(err); });
+AffiliateModel.prototype.addApi = function(affiliate_id,api_doc,callback) {
+  Affiliate.findOne({ _id: affiliate_id, account_id: api_doc.account_id}, function(error, aff_model) {
+    if ( error || aff_model == null ) {
+      console.log("error finding affiliate id: %s account id: %s error: %s",doc.affiliate_id,doc.accountId,error);
+      callback(error?error:new Error("unable to fetch affiliate id "+doc.affiliate_id+" with account: "+doc.accountId+" from db"));
+      return;
     }
+    aff_model.apis.push(api_doc);
+    aff_model.save( function (err) { 
+      if ( err ) 
+      console.log("error affiliate id: %s account id: %s error: %s",affiliate_id,api_doc.accountId,err);
+      callback(err); 
+      return;
+    });
   });
 };
 
+// TODO add multitenancy
 AffiliateModel.prototype.getAffiliateApi = function(webpage,callback) {
   Affiliate.find({ "apis.webpage": webpage }, { "apis.webpage": 1, "apis.url":  1}, function (error, aff_model) {
     if ( error ) callback(error);
