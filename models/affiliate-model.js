@@ -23,11 +23,12 @@ var myAffiliate = new Schema({
   , updated_at: { type: Date, default: Date.now }
 });
 
-var Affiliate = mongoose.model('Affiliate',myAffiliate);
+var Affiliate;
 
-AffiliateModel = function(host, port) {
-  var db = mongoose.createConnection('mongodb://'+host+':'+port+'/marketing');
-  console.info("connected to mongodb://%s:%d/marketing",host,port);
+AffiliateModel = function(url) {
+  var db = mongoose.createConnection(url+'/marketing');
+  Affiliate = db.model('Affiliate',myAffiliate);
+  console.log("connected to %s/marketing",url);
 };
 
 

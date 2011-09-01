@@ -9,6 +9,7 @@ Install
 *  Download and install `mongo db`
 *  Download source code to a local directory, example: `~/github/marketing`
 *  install dependencies: `$ cd ~/github/marketing; npm install -d`
+*  set environment variable for DB connection string: `export MONGOHQ_URL=mongodb://localhost:27017`
 
 Running
 -------

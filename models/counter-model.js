@@ -10,10 +10,12 @@ var myCounter = new Schema({
   , created_at: { type: Date, default: Date.now }
 });
 
-var Counter = mongoose.model('Counter',myCounter);
+var Counter;
 
-CounterModel = function(host, port) {
-  mongoose.connect('mongodb://'+host+':'+port+'/marketing');
+CounterModel = function(url) {
+  var db = mongoose.createConnection(url+'/marketing');
+  Counter = db.model('Counter',myCounter);
+  console.log("connected to %s/marketing",url);
 };
 
 CounterModel.prototype.save = function(doc) {

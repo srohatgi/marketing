@@ -36,11 +36,11 @@ var UserSchema = new Schema({
 
 var User, Account;
 
-UserModel = function(host, port) {
-  var db = mongoose.createConnection('mongodb://'+host+':'+port+'/user');
+UserModel = function(url) {
+  var db = mongoose.createConnection(url+'/user');
   User = db.model('User',UserSchema);
   Account = db.model('Account',AccountSchema);
-  console.info("connected to mongodb://%s:%d/user",host,port);
+  console.info("connected to %s/user",url);
 };
 
 UserModel.prototype.login = function(doc, callback) {

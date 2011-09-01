@@ -36,9 +36,9 @@ var UserModel = require('./models/user-model.js').UserModel
   , AffiliateModel = require('./models/affiliate-model.js').AffiliateModel
   , CounterModel = require('./models/counter-model.js').CounterModel;
 
-var affiliateModel = new AffiliateModel('localhost', 27017)
-  , counterModel = new CounterModel('localhost', 27017)
-  , userModel = new UserModel('localhost', 27017);
+var affiliateModel = new AffiliateModel(process.env.MONGOHQ_URL)
+  , counterModel = new CounterModel(process.env.MONGOHQ_URL)
+  , userModel = new UserModel(process.env.MONGOHQ_URL);
 
 // Routes
 // Enforce Session To Be populated with userId at all times
@@ -52,6 +52,7 @@ app.all('/app/*', function (req, res, next) {
  *****************************************************************************/
 // main 'app' page
 app.get('/app/affiliate/list', function(req, res){
+  console.log("trying to find all affiliates for accountId: %s",req.session.accountId);
   affiliateModel.findAll(req.session.accountId, function(err, affiliates){
     if ( err ) {
       res.send("error calling /affiliate/all: "+err);
@@ -257,6 +258,7 @@ app.post('/app/login', function(req, res){
     console.info('logged in user: %s account: %s',doc.userId,doc.accountId);
     req.session.userId = doc.userId;
     req.session.accountId = doc.userId;
+    console.log("redirecting to /app/affiliate/list");
     res.redirect('/app/affiliate/list');
   });
 });
