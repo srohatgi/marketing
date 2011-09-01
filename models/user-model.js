@@ -25,7 +25,7 @@ var AccountSchema = new Schema({
 var UserSchema = new Schema({
     name: String
   , account_id: ObjectId
-  , login: { type: String, unique: true }
+  , login: { type: String } // do not use indexes for now; 
   , email: [String]
   , identities: [IdentityDataSchema]
   , created_by: String
