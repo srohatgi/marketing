@@ -27,8 +27,8 @@ var Affiliate;
 
 AffiliateModel = function(url) {
   var db = mongoose.createConnection(url+'/marketing');
+  console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
   Affiliate = db.model('Affiliate',myAffiliate);
-  console.log("connected to %s/marketing",url);
 };
 
 

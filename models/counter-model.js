@@ -15,7 +15,7 @@ var Counter;
 CounterModel = function(url) {
   var db = mongoose.createConnection(url+'/marketing');
   Counter = db.model('Counter',myCounter);
-  console.log("connected to %s/marketing",url);
+  console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
 };
 
 CounterModel.prototype.save = function(doc) {

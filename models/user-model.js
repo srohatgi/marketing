@@ -40,7 +40,7 @@ UserModel = function(url) {
   var db = mongoose.createConnection(url+'/user');
   User = db.model('User',UserSchema);
   Account = db.model('Account',AccountSchema);
-  console.info("connected to %s/user",url);
+  console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
 };
 
 UserModel.prototype.login = function(doc, callback) {
