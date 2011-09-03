@@ -34,14 +34,30 @@ var UserSchema = new Schema({
   , updated_at: { type: Date, default: Date.now }
 });
 
-var User, Account;
+var SessionSchema = new Schema({
+    account_id: ObjectId
+  , created_by: ObjectId
+  , created_at: {type: Date, default: Date.now }
+  , updated_by: ObjectId
+  , updated_at: { type: Date, default: Date.now }
+});
+
+var User, Account, Session;
 
 UserModel = function(url) {
   var db = mongoose.createConnection(url);
   User = db.model('User',UserSchema);
   Account = db.model('Account',AccountSchema);
+  Session = db.model('Session',SessionSchema);
   console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
 };
+
+UserModel.prototype.validateSession = function (sessionId, callback) {
+  User.findOne({ _id: sessionId }, function (error, session_rec) {
+    if ( error ) { console.log("unable to validate sessionId: %s",sessionId); callback(error); return; }
+    callback(null, session_rec.account_id);
+  });
+}
 
 UserModel.prototype.login = function(doc, callback) {
   console.log("login buffer in: "+JSON.stringify(doc));
@@ -50,11 +66,18 @@ UserModel.prototype.login = function(doc, callback) {
     if ( error || rec == null ) callback(error?error:new Error("NO USER FOUND"));
     else {
       if ( rec.identities[0].identity == 'plain' ) {
-        var shasum = crypto.createHash('sha1');
-        shasum.update(doc.passwd);
         console.log("checking password against sha1");
-        if ( rec.identities[0].passwd != shasum.digest('hex') )  callback(new Error("PASSWORD DOES NOT MATCH"));
-        else callback(null,{ userId: rec._id, accountId: rec.account_id});
+        if ( rec.identities[0].passwd != createSha(doc.password).sha )  callback(new Error("PASSWORD DOES NOT MATCH"));
+        else {
+          var s = new Session();
+          s.account_id = rec.account_id;
+          s.created_by = rec._id;
+          s.updated_by = rec._id;
+          s.save(function (err) {
+            if ( err ) { console.log("unable to generate a session id for user:%s(%s)",doc.email,rec._id); callback(err); return; }
+            callback(null,{ userId: rec._id, accountId: rec.account_id, sessionId: s._id});
+          });
+        }
         return;
       }
       else if ( rec.identities[0].identity == 'owa' ) {
@@ -65,6 +88,13 @@ UserModel.prototype.login = function(doc, callback) {
       else return;
     }
   });
+}
+
+// TODO add salt; prevent rainbow attacks
+function createSha(input) {
+  var shasum = crypto.createHash('sha1');
+  shasum.update(input);
+  return ({ input: input, sha: shasum.digest('hex'), salt: null});
 }
 
 UserModel.prototype.createAccount = function(doc, callback) {
@@ -96,9 +126,7 @@ var my_user_save = function(doc, callback) {
   user.login = doc.email;
   //console.log("trying to save user: "+JSON.stringify(doc));
   if ( doc.identity == 'plain' ) {
-    var shasum = crypto.createHash('sha1');
-    shasum.update(doc.passwd);
-    user.identities = [{identity: doc.identity, passwd: shasum.digest('hex')}];
+    user.identities = [{identity: doc.identity, passwd: createSha(doc.passwd).sha}];
   }
   else if ( doc.identity == 'owa' ) {
     user.owa_url = doc.owa_url;

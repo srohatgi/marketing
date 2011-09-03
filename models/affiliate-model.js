@@ -57,7 +57,7 @@ AffiliateModel.prototype.save = function(doc,callback) {
 };
 
 AffiliateModel.prototype.findById = function(doc, callback) {
-  Affiliate.findOne({ _id: doc.affiliate_id, account_id: doc.accountId }, function(error, doc) {
+  Affiliate.findOne({ _id: doc.affiliate_id, account_id: doc.account_id }, function(error, doc) {
     if( error ) callback(error)
     else callback(null, doc)
   });

@@ -86,24 +86,31 @@ app.get('/app/affiliate/:id', function(req, res) {
 
 // get a list of affiliates
 app.get('/api/affiliate/:id', function(req, res) {
-  if ( req.params.id == 'all' ) {
-    console.info("trying to find affiliate: %s",req.params.id);
-    affiliateModel.findAll(function(error, affiliates){
-      if ( error ) {
-        console.error("error getting affiliates");
-        res.send({error: "error getting affiliates"});
-      }
-      res.send(affiliates);
-    });
-  } else {
-    affiliateModel.findById(req.params.id, function(error, affiliates) {
-      if ( error ) {
-        console.error("error finding affiliate: %s!!",req.params.id);
-        res.send({ error: "error finding affiliate"});
-      }
-      res.send(affiliates);
-    });
-  }
+  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+    if ( err ) {
+      console.log("error validating session: %s error: %s", req.param('sessionId'),err);
+      res.send({error: "invalid session"});
+      return;
+    }
+    if ( req.params.id == 'all' ) {
+      console.info("trying to find affiliate: %s",req.params.id);
+      affiliateModel.findAll(accountId,function(error, affiliates){
+        if ( error ) {
+          console.error("error getting affiliates");
+          res.send({error: "error getting affiliates"});
+        }
+        res.send(affiliates);
+      });
+    } else {
+      affiliateModel.findById({ affiliate_id: req.params.id, account_id: accountId }, function(error, affiliates) {
+        if ( error ) {
+          console.error("error finding affiliate: %s!!",req.params.id);
+          res.send({ error: "error finding affiliate"});
+        }
+        res.send(affiliates);
+      });
+    }
+  });
 });
 
 // read from form, and update the data record
@@ -129,13 +136,21 @@ app.post('/app/affiliate/create', function(req, res){
 });
 
 app.post('/api/affiliate/create', function(req, res){
-  console.info("saving affiliate: %s",JSON.stringify(req.body));
-  affiliateModel.save( req.body, function( error ) {
-    if ( error ) {
-      console.log("error saving affiliate");
-      res.send({ error: "error saving affiliate"});
+  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+    if ( err ) {
+      console.log("error validating session: %s error: %s", req.param('sessionId'),err);
+      res.send({error: "invalid session"});
+      return;
     }
-    res.send({});
+    req.body.account_id = accountId;
+    console.info("saving affiliate: %s",JSON.stringify(req.body));
+    affiliateModel.save( req.body, function( error ) {
+      if ( error ) {
+        console.log("error saving affiliate");
+        res.send({ error: "error saving affiliate"});
+      }
+      res.send({});
+    });
   });
 });
 
@@ -157,36 +172,51 @@ app.post('/app/affiliate/api/create', function(req, res) {
 });
 
 app.post('/api/affiliate/api/create', function(req, res) {
-  console.info(req.body);
-  affiliateModel.addApi(req.body._id, {
-      url: req.body.url
-    , webpage: req.body.webpage
-    , created_by: req.body.user
-    , updated_by: req.body.user
-  } , function( error ) {
-    if ( error ) {
-      console.error("unable to save api: %s",req.body.url);
-      res.send({ error: "unable to add api" });
+  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+    if ( err ) {
+      console.log("error validating session: %s error: %s", req.param('sessionId'),err);
+      res.send({error: "invalid session"});
+      return;
     }
-    res.send({});
+    console.info(req.body);
+    affiliateModel.addApi(req.body._id, {
+        url: req.body.url
+      , webpage: req.body.webpage
+      , account_id: accountId
+      , created_by: req.body.user
+      , updated_by: req.body.user
+    } , function( error ) {
+      if ( error ) {
+        console.error("unable to save api: %s",req.body.url);
+        res.send({ error: "unable to add api" });
+      }
+      res.send({});
+    });
   });
 });
 
 // lookup affiliates by webpage
 app.get('/api/affiliate/webpage/:id', function(req, res) {
-  console.info(req.params.id);
-  affiliateModel.getAffiliateApi(req.params.id, function(error, urls) {
-    if ( error ) {
-      console.log("unable to fetch any affiliates for webpage: "+req.params.id);
-      urls = [];
+  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+    if ( err ) {
+      console.log("error validating session: %s error: %s", req.param('sessionId'),err);
+      res.send({error: "invalid session"});
+      return;
     }
-    else {
-      if ( typeof(urls.length)=="undefined" ) urls = [urls];
-      // fire and forget call for tracking
-      for (var i=0;i<urls.length;i++) 
-        counterModel.save({name: urls[i].url, type: urls[i].webpage, subtype: ""});
-    }
-    res.send(urls);
+    console.info(req.params.id);
+    affiliateModel.getAffiliateApi({ webpage: req.params.id, account_id: accountId}, function(error, urls) {
+      if ( error ) {
+        console.log("unable to fetch any affiliates for webpage: "+req.params.id);
+        urls = [];
+      }
+      else {
+        if ( typeof(urls.length)=="undefined" ) urls = [urls];
+        // fire and forget call for tracking
+        for (var i=0;i<urls.length;i++) 
+          counterModel.save({name: urls[i].url, type: urls[i].webpage, subtype: ""},null);
+      }
+      res.send(urls);
+    });
   });
 });
 
@@ -221,7 +251,7 @@ app.post('/app/account/create', function(req, res) {
 app.post('/api/account/create', function(req, res) {
   console.log(req.body);
   var data = req.body;
-
+  data.account_id = accountId;
   userModel.createAccount( data, function (error, userId) {
     if ( error ) {
       console.log("error saving account: "+req.param('acct_name'));
@@ -274,7 +304,7 @@ app.post('/api/login', function(req, res) {
     }
     else {
       console.log("successfully logged in! user: %s account: %s",doc.userId,doc.accountId);
-      res.send({ userId: doc.userId, accountId: doc.accountId });
+      res.send({ userId: doc.userId, accountId: doc.accountId, sessionId: doc.sessionId });
     }
   });
 });
