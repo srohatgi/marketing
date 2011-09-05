@@ -53,8 +53,12 @@ UserModel = function(url) {
 };
 
 UserModel.prototype.validateSession = function (sessionId, callback) {
-  User.findOne({ _id: sessionId }, function (error, session_rec) {
-    if ( error ) { console.log("unable to validate sessionId: %s",sessionId); callback(error); return; }
+  Session.findById(sessionId, function (error, session_rec) {
+    if ( error || session_rec == null ) { 
+      console.log("unable to validate sessionId: %s",sessionId); 
+      callback(error?error:new Error("INVALID SESSION ID")); 
+      return; 
+    }
     callback(null, session_rec.account_id);
   });
 }
@@ -92,6 +96,7 @@ UserModel.prototype.login = function(doc, callback) {
 
 // TODO add salt; prevent rainbow attacks
 function createSha(input) {
+  console.log("string to be converted to sha: %s",input);
   var shasum = crypto.createHash('sha1');
   shasum.update(input);
   return ({ input: input, sha: shasum.digest('hex'), salt: null});

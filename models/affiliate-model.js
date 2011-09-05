@@ -1,6 +1,7 @@
 var mongoose = require("mongoose")
   , Schema = mongoose.Schema
-  , ObjectId = Schema.ObjectId;
+  , ObjectId = Schema.ObjectId
+  , util = require("util");
 
 var API = new Schema({
     url: String
@@ -11,7 +12,7 @@ var API = new Schema({
   , updated_at: { type: Date, default: Date.now }
 });
 
-var myAffiliate = new Schema({
+var AffiliateSchema = new Schema({
     name: String
   , description: String
   , website: String
@@ -23,12 +24,14 @@ var myAffiliate = new Schema({
   , updated_at: { type: Date, default: Date.now }
 });
 
-var Affiliate;
+var Affiliate; 
 
 AffiliateModel = function(url) {
+  //var db = mongoose.connect(url);
+  //Affiliate = mongoose.model('Affiliate',AffiliateSchema);
   var db = mongoose.createConnection(url);
+  Affiliate = db.model('Affiliate',AffiliateSchema);
   console.log("connected to mongodb://%s:%s@%s:%d/%s",db.user,db.pass,db.host,db.port,db.name);
-  Affiliate = db.model('Affiliate',myAffiliate);
 };
 
 
@@ -57,9 +60,17 @@ AffiliateModel.prototype.save = function(doc,callback) {
 };
 
 AffiliateModel.prototype.findById = function(doc, callback) {
-  Affiliate.findOne({ _id: doc.affiliate_id, account_id: doc.account_id }, function(error, doc) {
-    if( error ) callback(error)
-    else callback(null, doc)
+  /*
+  var id = doc.affiliate_id;
+  console.log(util.inspect(Affiliate.collection));
+  var Db = Affiliate.collection.collection.db;
+  var id = new Db.bson_serializer.ObjectID(doc.affiliate_id);
+  var account_id = new Db.bson_serializer.ObjectID(doc.account_id);
+  console.log("_id:%s, account_id:%s",id,account_id);
+  */
+  Affiliate.findOne({ _id: doc.affiliate_id, account_id: doc.account_id }, function(error, result) {
+    if( error || result == null ) callback(error?error:new Error("unable to query for affiliate id:"+doc.affiliate_id));
+    else callback(null, result);
   });
 };
 

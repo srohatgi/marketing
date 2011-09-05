@@ -70,7 +70,7 @@ app.get('/app/affiliate/:id', function(req, res) {
     return;
   }
 
-  affiliateModel.findById({ affiliate_id: req.params.id, accountId: req.session.accountId} , function(err, affiliate){
+  affiliateModel.findById({ affiliate_id: req.params.id, account_id: req.session.accountId} , function(err, affiliate){
     if ( err ) {
       console.log("error finding affiliate: %s!!",req.params.id);
       res.send("unable to find affiliate: "+req.params.id);
@@ -85,14 +85,17 @@ app.get('/app/affiliate/:id', function(req, res) {
 });
 
 // get a list of affiliates
-app.get('/api/affiliate/:id', function(req, res) {
+app.get('/api/affiliate/:id', function(req, res, next) {
   userModel.validateSession(req.param('sessionId'),function (err, accountId) {
     if ( err ) {
       console.log("error validating session: %s error: %s", req.param('sessionId'),err);
       res.send({error: "invalid session"});
       return;
+    } 
+    if ( req.params.id == 'create' ) { 
+      next(); 
     }
-    if ( req.params.id == 'all' ) {
+    else if ( req.params.id == 'list' ) {
       console.info("trying to find affiliate: %s",req.params.id);
       affiliateModel.findAll(accountId,function(error, affiliates){
         if ( error ) {
@@ -251,7 +254,7 @@ app.post('/app/account/create', function(req, res) {
 app.post('/api/account/create', function(req, res) {
   console.log(req.body);
   var data = req.body;
-  data.account_id = accountId;
+
   userModel.createAccount( data, function (error, userId) {
     if ( error ) {
       console.log("error saving account: "+req.param('acct_name'));
@@ -276,7 +279,7 @@ app.get('/app/login', function(req, res){
 app.post('/app/login', function(req, res){
   var data = {
       email: req.param('email')
-    , passwd: req.param('passwd')
+    , password: req.param('password')
   };
   console.info("logging into: %s",JSON.stringify(data));
 
@@ -285,9 +288,10 @@ app.post('/app/login', function(req, res){
       res.send("unable to login user: "+req.param('email')+" error: "+error);
       return;
     }
-    console.info('logged in user: %s account: %s',doc.userId,doc.accountId);
+    console.info('logged in user: %s account: %s session: %s',doc.userId,doc.accountId,doc.sessionId);
     req.session.userId = doc.userId;
-    req.session.accountId = doc.userId;
+    req.session.accountId = doc.accountId;
+    req.session.sessionId = doc.sessionId;
     console.log("redirecting to /app/affiliate/list");
     res.redirect('/app/affiliate/list');
   });
