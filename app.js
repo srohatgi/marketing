@@ -58,7 +58,7 @@ app.get('/app/affiliate/list', function(req, res){
       res.send("error calling /affiliate/all: "+err);
       return;
     }
-    res.render('index.jade', {locals: {title: 'Affiliate Manager', affiliates: affiliates}});
+    res.render('index.jade', {locals: {title: 'Pixel Container', affiliates: affiliates}});
   });
 });
 
