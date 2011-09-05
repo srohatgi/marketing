@@ -100,8 +100,8 @@ AffiliateModel.prototype.addApi = function(affiliate_id,api_doc,callback) {
 };
 
 // TODO add multitenancy
-AffiliateModel.prototype.getAffiliateApi = function(webpage,callback) {
-  Affiliate.find({ "apis.webpage": webpage }, { "apis.webpage": 1, "apis.url":  1}, function (error, aff_model) {
+AffiliateModel.prototype.getAffiliateApi = function(input,callback) {
+  Affiliate.find({ "apis.webpage": input.webpage }, { "apis.webpage": 1, "apis.url":  1}, function (error, aff_model) {
     if ( error ) callback(error);
     else {
       var filtered = [];
@@ -110,7 +110,7 @@ AffiliateModel.prototype.getAffiliateApi = function(webpage,callback) {
         var doc = aff_model[i].apis;
         for (var k=0;k<doc.length;k++) {
           //console.log("fetched webpage: "+doc[k].webpage+" url: "+doc[k].url);
-          if ( doc[k].webpage === webpage ) {
+          if ( doc[k].webpage === input.webpage ) {
             //console.log("added webpage: "+doc[k].webpage+" url: "+doc[k].url);
             filtered.push({webpage: doc[k].webpage, url: doc[k].url});
           }

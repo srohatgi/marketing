@@ -22,9 +22,9 @@ echo
 echo ----------------LISTING AFFILIATES
 curl -H "Content-Type: application/json" http://localhost:3000/api/affiliate/list?sessionId=$sessionId
 echo
-#echo
-#echo ----------------SIMULATE WEB PAGE LOADS
-#curl -H "Content-Type: application/json" http://localhost:3000/api/affiliate/list?sessionId=$sessionId
+echo ----------------SIMULATE WEB PAGE LOADS
+curl -H "Content-Type: application/json" http://localhost:3000/api/affiliate/webpage/%2Fhome?sessionId=$sessionId
+echo
 #echo
 #echo ----------------LIST COUNTERS
 #curl -H "Content-Type: application/json" http://localhost:3000/api/affiliate/list?sessionId=$sessionId
