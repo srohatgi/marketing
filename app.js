@@ -127,13 +127,14 @@ app.post('/app/affiliate/create', function(req, res){
   };
   console.info("creating new affiliate: %s",JSON.stringify(data));
 
-  affiliateModel.save( data, function( err ) {
+  affiliateModel.save( data, function( err, affiliate_id ) {
     if ( err ) {
       var msg = 'failed creating affiliate: '+err+'';
       console.log(msg);
       res.send(msg);
       return;
     }
+    console.log("created affiliate: %s",affiliate_id);
     res.redirect('/app/affiliate/list'); // goto main app page; which shows affiliate list
   });
 });
@@ -147,12 +148,12 @@ app.post('/api/affiliate/create', function(req, res){
     }
     req.body.account_id = accountId;
     console.info("saving affiliate: %s",JSON.stringify(req.body));
-    affiliateModel.save( req.body, function( error ) {
+    affiliateModel.save( req.body, function( error, affiliate_id ) {
       if ( error ) {
         console.log("error saving affiliate");
         res.send({ error: "error saving affiliate"});
       }
-      res.send({});
+      res.send({affiliate_id: affiliate_id});
     });
   });
 });
@@ -160,7 +161,7 @@ app.post('/api/affiliate/create', function(req, res){
 // add affiliate[API]
 app.post('/app/affiliate/api/create', function(req, res) {
   var data = {
-      _id: req.param('_id')
+      affiliate_id: req.param('_id')
     , url: req.param('url')
     , account_id: req.session.accountId
     , webpage: req.param('webpage')
@@ -168,7 +169,7 @@ app.post('/app/affiliate/api/create', function(req, res) {
     , updated_by: req.param('user')
   };
 
-  affiliateModel.addApi(data._id, data, function (err) {
+  affiliateModel.addApi(data.affiliate_id, data, function (err) {
     if ( err ) console.log("unable to save api: "+req.param('url'));
     res.redirect('/app/affiliate/' + req.param('_id'));
   });
@@ -182,18 +183,19 @@ app.post('/api/affiliate/api/create', function(req, res) {
       return;
     }
     console.info(req.body);
-    affiliateModel.addApi(req.body._id, {
+    affiliateModel.addApi(req.body.affiliate_id, {
         url: req.body.url
       , webpage: req.body.webpage
       , account_id: accountId
       , created_by: req.body.user
       , updated_by: req.body.user
-    } , function( error ) {
+    } , function( error, api_id ) {
       if ( error ) {
         console.error("unable to save api: %s",req.body.url);
         res.send({ error: "unable to add api" });
+        return;
       }
-      res.send({});
+      res.send({ api_id: api_id});
     });
   });
 });

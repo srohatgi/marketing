@@ -56,7 +56,13 @@ AffiliateModel.prototype.save = function(doc,callback) {
   aff.created_by = doc.created_by;
   aff.updated_by = doc.updated_by;
   aff.account_id = doc.account_id;
-  aff.save(function (error) { callback(error); });
+  aff.save(function (error) { 
+    if ( error ) {
+      callback(error); 
+      return;
+    }
+    callback(null,aff._id);
+  });
 };
 
 AffiliateModel.prototype.findById = function(doc, callback) {
@@ -77,16 +83,18 @@ AffiliateModel.prototype.findById = function(doc, callback) {
 AffiliateModel.prototype.addApi = function(affiliate_id,api_doc,callback) {
   Affiliate.findOne({ _id: affiliate_id, account_id: api_doc.account_id}, function(error, aff_model) {
     if ( error || aff_model == null ) {
-      console.log("error finding affiliate id: %s account id: %s error: %s",doc.affiliate_id,doc.accountId,error);
-      callback(error?error:new Error("unable to fetch affiliate id "+doc.affiliate_id+" with account: "+doc.accountId+" from db"));
+      console.log("error finding affiliate id: %s account id: %s error: %s",affiliate_id,api_doc.account_id,error);
+      callback(error?error:new Error("unable to fetch affiliate id "+affiliate_id+" with account: "+api_doc.account_id+" from db"));
       return;
     }
     aff_model.apis.push(api_doc);
     aff_model.save( function (err) { 
-      if ( err ) 
-      console.log("error affiliate id: %s account id: %s error: %s",affiliate_id,api_doc.accountId,err);
-      callback(err); 
-      return;
+      if ( err ) {
+        console.log("error affiliate id: %s account id: %s error: %s",affiliate_id,api_doc.accountId,err);
+        callback(err); 
+        return;
+      }
+      callback(null,1);
     });
   });
 };
