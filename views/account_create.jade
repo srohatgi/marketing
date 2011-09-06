@@ -1,46 +1,47 @@
-head
-  meta(name="viewport",content="width=device-width")
-body
+div#main_content
   h2= title + ' for accessing Pixel Manager'
-  div
-    form( method="post", action="/app/account/create")
-      table
-        tbody
-          tr
-            td
-              span Account Name:
-            td
-              input( type="text", name="acct_name", id="acctName")
-            td
-              span Description:
-            td
-              input( type="text", name="acct_description", id="acctDescription")
-          tr
-            td
-              span Website:
-            td
-              input( type="text", name="website", id="userWebsite")
-            td
-              span Admin Name:
-            td
-              input( type="text", name="name", id="userName")
-          tr
-            td
-              span Login (Email):
-            td
-              input( type="text", name="email", id="userEmail")
-            td
-              span Passwd:
-            td
-              input( type="password", name="passwd", id="userPasswd")
-          tr
-            td
-              span Authentication Policy:
-            td
-              <select name="identity"><option value="plain">basic</option><select>
-            td
-            td
-              input( type="submit", value="Create Account")
-          tr
-            td
-              a( href="/app/login",title="if you have an account already, Login") Existing Login!!
+  form(method="post",id="account_create",action="/app/account/create",onsubmit="ajax('main_content','/app/account/create','account_create');return false;")
+    table
+      tbody
+        tr
+          td
+            span Account Name:
+          td
+            input( type="text", name="acct_name", id="acctName")
+        tr
+          td
+            span Description:
+          td
+            input( type="text", name="acct_description", id="acctDescription")
+        tr
+          td
+            span Website:
+          td
+            input( type="text", name="website", id="userWebsite")
+        tr
+          td
+            span Admin Name:
+          td
+            input( type="text", name="name", id="userName")
+        tr
+          td
+            span Login (Email):
+          td
+            input( type="text", name="email", id="userEmail")
+        tr
+          td
+            span Passwd:
+          td
+            input( type="password", name="passwd", id="userPasswd")
+        tr
+          td
+            span Authentication Policy:
+          td
+            <select name="identity"><option value="plain">basic</option><select>
+        tr
+          td
+          td
+            input( type="submit", value="Create Account")
+        tr
+          td
+            a( href="/app/login",title="if you have an account already, Login",onclick="ajax('main_content','/app/login');return false;") Existing Login!!

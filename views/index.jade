@@ -21,4 +21,4 @@ h2= title
     tbody
       tr
         td
-          <input type="button" value="Add New Affiliate" onClick="window.location='/app/affiliate/create'"/>
+          <input type="button" value="Add New Affiliate" onClick="ajax('main_content','/app/affiliate/create'); return false;"/>

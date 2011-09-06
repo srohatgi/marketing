@@ -1,26 +1,29 @@
-h2= title
-form( method="post")
-  table
-    tbody
-      tr
-        td
+div#main_content
+  h2= title
+  form(method="post",id="add_affiliate",action="/app/affiliate/create",onsubmit="ajax('main_content','/app/affiliate/create','add_affiliate');return false;")
+    table
+      tbody
+        tr
+          td
             span Name :
-        td
+          td
             input(type="text", name="name", id="editAffiliateName")
-        td
+        tr
+          td
             span Website :
-        td
+          td
             input(type="text", name="website", id="editAffiliateWebsite")
-      tr
-        td
+        tr
+          td
             span Description :
-        td
+          td
             textarea( name="description", rows=2, id="editAffiliateDescription")
-        td
+        tr
+          td
             span Created By :
-        td
+          td
             input(type="text", name="created_by", id="editAffiliateCreatedBy")
-      tr
-        td
-        td
+        tr
+          td
+          td
             input(type="submit", value="Create New Affiliate")
