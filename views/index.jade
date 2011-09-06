@@ -5,7 +5,7 @@ h2= title
     - each affiliate in affiliates
       tr
         td
-          a(href="/app/affiliate/"+affiliate._id.toHexString())!= affiliate.name
+          span <a href=#{'/app/affiliate/'+affiliate._id.toHexString()} onclick="ajax('main_content',#{"\""+'/app/affiliate/'+affiliate._id.toHexString()+"\""}); return false;">#{affiliate.name}</a>
         td
           span #{affiliate.description}
         td
