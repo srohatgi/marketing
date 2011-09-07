@@ -8,6 +8,15 @@ var express = require('express')
 
 var app = module.exports = express.createServer();
 
+// Custom Headers: CORS Middleware
+var allowCrossDomain = function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+  next();
+}
+
 // Configuration
 
 app.configure(function(){
@@ -19,6 +28,7 @@ app.configure(function(){
   app.use(require('stylus').middleware({ src: __dirname + '/public' }));
   app.use(express.cookieParser());
   app.use(express.session({ secret: "keyboard cat" }));
+  app.use(allowCrossDomain);
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
 });
@@ -301,16 +311,16 @@ app.post('/app/login', function(req, res){
 
 app.post('/api/login', function(req, res) {
   console.info(req.body);
-  var data = req.body;
+  var input = req.body;
 
-  userModel.login(data, function (error, doc) {
+  userModel.login(input, function (error, output) {
     if ( error ) {
       console.log("error logging in error: %s",error);
       res.send({error: "error logging in: "+error+"!"});
     }
     else {
-      console.log("successfully logged in! user: %s account: %s",doc.userId,doc.accountId);
-      res.send({ userId: doc.userId, accountId: doc.accountId, sessionId: doc.sessionId });
+      console.log("successfully logged in! %s",JSON.stringify(output));
+      res.send(output);
     }
   });
 });
