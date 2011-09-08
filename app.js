@@ -42,13 +42,14 @@ app.configure('production', function(){
 });
 
 // Models
-var UserModel = require('./models/user-model.js').UserModel
-  , AffiliateModel = require('./models/affiliate-model.js').AffiliateModel
+var AffiliateModel = require('./models/affiliate-model.js').AffiliateModel
   , CounterModel = require('./models/counter-model.js').CounterModel;
 
 var affiliateModel = new AffiliateModel(process.env.MONGOHQ_URL)
-  , counterModel = new CounterModel(process.env.MONGOHQ_URL)
-  , userModel = new UserModel(process.env.MONGOHQ_URL);
+  , counterModel = new CounterModel(process.env.MONGOHQ_URL);
+
+// Services
+var UserSvc = require('./models/user-model.js').UserSvc(process.env.MONGOHQ_URL);
 
 // Routes
 // Enforce Session To Be populated with userId at all times
@@ -96,7 +97,7 @@ app.get('/app/affiliate/:id', function(req, res) {
 
 // get a list of affiliates
 app.get('/api/affiliate/:id', function(req, res, next) {
-  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+  UserSvc.validateSession(req.param('sessionId'),function (err, accountId) {
     if ( err ) {
       console.log("error validating session: %s error: %s", req.param('sessionId'),err);
       res.send({error: "invalid session"});
@@ -150,7 +151,7 @@ app.post('/app/affiliate/create', function(req, res){
 });
 
 app.post('/api/affiliate/create', function(req, res){
-  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+  UserSvc.validateSession(req.param('sessionId'),function (err, accountId) {
     if ( err ) {
       console.log("error validating session: %s error: %s", req.param('sessionId'),err);
       res.send({error: "invalid session"});
@@ -186,7 +187,7 @@ app.post('/app/affiliate/api/create', function(req, res) {
 });
 
 app.post('/api/affiliate/api/create', function(req, res) {
-  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+  UserSvc.validateSession(req.param('sessionId'),function (err, accountId) {
     if ( err ) {
       console.log("error validating session: %s error: %s", req.param('sessionId'),err);
       res.send({error: "invalid session"});
@@ -212,7 +213,7 @@ app.post('/api/affiliate/api/create', function(req, res) {
 
 // lookup affiliates by webpage
 app.get('/api/affiliate/webpage/:id', function(req, res) {
-  userModel.validateSession(req.param('sessionId'),function (err, accountId) {
+  UserSvc.validateSession(req.param('sessionId'),function (err, accountId) {
     if ( err ) {
       console.log("error validating session: %s error: %s", req.param('sessionId'),err);
       res.send({error: "invalid session"});
@@ -256,7 +257,7 @@ app.post('/app/account/create', function(req, res) {
 
   console.info("creating account: %s",JSON.stringify(data));
 
-  userModel.createAccount( data, function (error, userId) {
+  UserSvc.createAccount( data, function (error, userId) {
     if ( error === null ) console.log('error: %s',error);
     res.redirect("/app/login");
   });
@@ -267,7 +268,7 @@ app.post('/api/account/create', function(req, res) {
   console.log(req.body);
   var data = req.body;
 
-  userModel.createAccount( data, function (error, userId) {
+  UserSvc.createAccount( data, function (error, userId) {
     if ( error ) {
       console.log("error saving account: "+req.param('acct_name'));
       res.send({ error: "error saving account" });
@@ -289,21 +290,16 @@ app.get('/app/login', function(req, res){
 });
 
 app.post('/app/login', function(req, res){
-  var data = {
-      email: req.param('email')
-    , password: req.param('password')
-  };
-  console.info("logging into: %s",JSON.stringify(data));
+  var data = { email: req.param('email') , password: req.param('password') };
+  //console.info("logging into: %s",JSON.stringify(data));
 
-  userModel.login(data, function (error, doc) {
+  UserSvc.login(data, function (error, doc) {
     if ( error ) {
       res.send("unable to login user: "+req.param('email')+" error: "+error);
       return;
     }
-    console.info('logged in user: %s account: %s session: %s',doc.userId,doc.accountId,doc.sessionId);
-    req.session.userId = doc.userId;
-    req.session.accountId = doc.accountId;
-    req.session.sessionId = doc.sessionId;
+    for (var x in doc) req.session[x] = doc[x];
+    console.log("logged in userId:%s accountId:%s sessionId:%s",req.session['userId'],req.session['accountId'],req.session['sessionId']);
     console.log("redirecting to /app/affiliate/list");
     res.redirect('/app/affiliate/list');
   });
@@ -313,7 +309,7 @@ app.post('/api/login', function(req, res) {
   console.info(req.body);
   var input = req.body;
 
-  userModel.login(input, function (error, output) {
+  UserSvc.login(input, function (error, output) {
     if ( error ) {
       console.log("error logging in error: %s",error);
       res.send({error: "error logging in: "+error+"!"});
