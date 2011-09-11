@@ -50,11 +50,14 @@ var affiliateModel = new AffiliateModel(process.env.MONGOHQ_URL)
 
 // Services
 var UserSvc = require('./models/user-model.js').UserSvc(process.env.MONGOHQ_URL);
+var DealSvc = require('./models/deal-model.js').DealSvc(process.env.MONGOHQ_URL);
 
 // Routes
 // Enforce Session To Be populated with userId at all times
 app.all('/app/*', function (req, res, next) {
-  if ( ( !req.session.userId || !req.session.accountId ) && req.params != 'login' && req.params != 'account/create' ) res.redirect('/app/login');
+  if ( ( !req.session.userId || !req.session.accountId ) 
+       && req.params != 'login' && req.params != 'account/create' ) 
+    res.redirect('/app/login');
   else next();
 });
 
@@ -234,6 +237,40 @@ app.get('/api/affiliate/webpage/:id', function(req, res) {
       res.send(urls);
     });
   });
+});
+
+/*****************************************************************************
+ * DEALS                                                                     *
+ *****************************************************************************/
+
+function execSvc(req, res, cb_svc) {
+  UserSvc.validateSession(req.param('sessionId'), function (err, account_id) {
+    if ( err ) {
+      console.log(err.msg);
+      res.send({error: err.msg});
+      return;
+    }
+    var data_in = req.body;
+    data_in.account_id = account_id;
+    cb_svc(data_in, function (error, data_out) {
+      if ( error ) {
+        console.log(error.msg);
+        res.send({error: error.msg});
+        return;
+      }
+      res.send(data_out);
+    });
+  });
+};
+
+// create customer
+app.post('/api/deal/createCustomer', function(req,res) {
+  execSvc(req, res, DealSvc.createCustomer);
+});
+
+// customer adds a deal
+app.post('/api/deal/add', function(req,res) {
+  execSvc(req, res, DealSvc.addDeal);
 });
 
 /*****************************************************************************

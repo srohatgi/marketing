@@ -16,9 +16,9 @@ var AccountSchema = new Schema({
   , description: String
   , allowed_identities: [String]
   , super_users: [ObjectId]
-  , created_by: String
+  , created_by: ObjectId
   , created_at: {type: Date, default: Date.now }
-  , updated_by: String
+  , updated_by: ObjectId
   , updated_at: { type: Date, default: Date.now }
 });
 
@@ -28,9 +28,9 @@ var UserSchema = new Schema({
   , login: { type: String } // do not use indexes for now; 
   , email: [String]
   , identities: [IdentityDataSchema]
-  , created_by: String
+  , created_by: ObjectId
   , created_at: {type: Date, default: Date.now }
-  , updated_by: String
+  , updated_by: ObjectId
   , updated_at: { type: Date, default: Date.now }
 });
 
@@ -142,7 +142,15 @@ UserSvc = function(url) {
         else {
           console.log("saved account:"+JSON.stringify(account));
           doc.account_id = account._id;
-          that.userSave(doc,callback);
+          that.userSave(doc,function (e, uid) {
+            if ( e ) { callback(e); return; }
+            account.created_by = uid;
+            account.updated_by = uid;
+            account.save(function (e1) { 
+              if ( e1 ) { console.log("error updating account"); callback(e1); return; }
+              callback(null,uid);
+            });
+          });
         }
       });
     }
