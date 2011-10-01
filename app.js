@@ -1,12 +1,21 @@
-
 /**
  * Module dependencies.
  */
 
 var express = require('express')
-  , http = require('http');
+  , http = require('http')
+  , io = require('socket.io');
 
-var app = module.exports = express.createServer();
+var app = module.exports = express.createServer()
+  , io = io.listen(app);
+
+// realtime 'socket.io' events
+io.sockets.on('connection', function (socket) {
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
+    console.log(data);
+  });
+});
 
 // Custom Headers: CORS Middleware
 var allowCrossDomain = function(req, res, next) {
@@ -52,15 +61,101 @@ var affiliateModel = new AffiliateModel(process.env.MONGOHQ_URL)
 var UserSvc = require('./models/user-model.js').UserSvc(process.env.MONGOHQ_URL);
 var DealSvc = require('./models/deal-model.js').DealSvc(process.env.MONGOHQ_URL);
 
+// CONNECTING TO SQB
+var WorkspaceSvc = require('./models/workspace-model.js').WorkspaceSvc('http://172.21.4.177:8060/workspace/Workspace');
+var UserPfmSvc = require('./models/userpfm-model.js').UserPfmSvc('http://172.21.4.157:8080/user/User');
+var EncryptionSvc = require('./models/encryption-model.js').EncryptionSvc('http://172.21.4.158:8090/rbl/YsiEncryption');
+
+// CONNECTING TO SFORCE
+var SforceSvc = require('./models/sforce-model.js').SforceSvc('https://na12.salesforce.com');
+
 // Routes
 // Enforce Session To Be populated with userId at all times
 app.all('/app/*', function (req, res, next) {
   if ( ( !req.session.userId || !req.session.accountId ) 
-       && req.params != 'login' && req.params != 'account/create' ) 
+       && req.params != 'login' && req.params != 'account/create' 
+       && req.params != 'api/userfm/login' && req.params != 'workspace' ) {
     res.redirect('/app/login');
-  else next();
+  }
+  else {
+    next();
+  }
 });
 
+/*****************************************************************************
+ * YouSendIt Workspace API
+ *****************************************************************************/
+app.get('/app/workspace', function (req, res) {
+  console.log("sforce_sid=%s",req.param("sforce_sid"));
+  SforceSvc.getUserDetails({ sforce_sid: req.param("sforce_sid") }, function(err, user_rec) {
+    console.log("err: %s, user_rec: %s",err,user_rec);
+    if ( err ) {
+      res.send({ error: err });
+      return;
+    }
+    // 1. if link user record exists in PFM, Mongo
+    //    a. fetch workspace info
+    // 2. link user record to PFM, persist in Mongo
+    //    do 1.a
+    res.send({ user_details: user_rec });
+  });
+});
+
+app.get('/api/workspace', function (req, res) {
+  UserPfmSvc.getUserDetails({sessionId: req.param('sessionId')}, function (err, session_params) {
+    if ( err ) {
+      console.log(err);
+      res.send({error: err});
+      return;
+    }
+    var data_in = {};
+    data_in.ownerId = session_params.defaultUserAcctId;
+    data_in.ownerType = '1';
+    if ( session_params.version === 'v2' ) {
+      data_in.ownerId = session_params.userId;
+      data_in.ownerType = '2';
+    }
+    
+    WorkspaceSvc.getWorkSpace(data_in, function (err1, data_out) {
+      if ( err1 ) {
+        console.log(err1);
+        res.send({error: err1});
+        return;
+      }
+      res.send(data_out);
+    });
+  });
+});
+
+app.post('/api/userpfm/login', function(req, res) {
+  var input = req.body;
+
+  // encode the password; then login
+  EncryptionSvc.encodeData({ value: input.password}, function (err, out) {
+    if ( err || !out.encodeData ) {
+      var msg = "error encoding value, error["+err+"]";
+      console.log(msg);
+      res.send({error: msg}); 
+      return;
+    }
+    input.password = out.encodeData;
+    UserPfmSvc.login(input, function (error, output) {
+      if ( error ) {
+        var msg = "error encoding value, error["+err+"]";
+        console.log(msg);
+        res.send({error: msg});
+        return;
+      }
+      console.log("successfully logged in! %s",JSON.stringify(output));
+      var ret = { 
+          sessionId: output["sessionGuidRo"]
+      };
+
+      res.send(ret);
+    });
+  });
+
+});
 /*****************************************************************************
  * AFFILIATES manager app & relevant api                                     *
  *****************************************************************************/
@@ -250,7 +345,7 @@ function execSvc(req, res, cb_svc) {
       res.send({error: err.msg});
       return;
     }
-    var data_in = req.body;
+    var data_in = req.body?req.body:{};
     data_in.account_id = account_id;
     cb_svc(data_in, function (error, data_out) {
       if ( error ) {
@@ -271,6 +366,11 @@ app.post('/api/deal/createCustomer', function(req,res) {
 // customer adds a deal
 app.post('/api/deal/add', function(req,res) {
   execSvc(req, res, DealSvc.addDeal);
+});
+
+// deals available to *customer's* customers
+app.get('/app/deal/finder', function(req,res) {
+  res.render('dealfinder.jade', {locals: {title: 'Find Me Some Deals!!'}});
 });
 
 /*****************************************************************************
@@ -332,6 +432,7 @@ app.post('/app/login', function(req, res){
 
   UserSvc.login(data, function (error, doc) {
     if ( error ) {
+      console.log("unable to login user");
       res.send("unable to login user: "+req.param('email')+" error: "+error);
       return;
     }

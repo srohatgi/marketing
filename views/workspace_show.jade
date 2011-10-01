@@ -1,0 +1,15 @@
+div#main_content
+  h2= title
+  table
+    tbody
+      - each entry in workspace.directory
+        tr
+          td
+            img(src=entry.type)
+          td
+            span entry.name
+        tr
+          td
+            span entry.last_comment
+          td
+            span entry.last_updated
